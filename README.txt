@@ -5,7 +5,7 @@
 This project implements an enhanced **Transportation Fleet Management System (Assignment 2)** using advanced Java OOP and Collections Framework concepts. 
 It builds upon Assignment 1 by introducing sorting, searching, and collection-based data management features in `FleetManager` and `Main`.
 
-The system demonstrates inheritance, polymorphism, abstract classes, interfaces, exception handling, and now extensively uses Java Collections such as `List`, `Set`, `Map`, and `Comparator`.
+The system demonstrates inheritance, polymorphism, abstract classes, interfaces, exception handling, and now extensively uses Java Collections such as `ArrayList`, `Set`, 'TreeSet', `Map`, and `Comparator`.
 
 ## New Additions in Assignment 2
 
@@ -13,7 +13,6 @@ The system demonstrates inheritance, polymorphism, abstract classes, interfaces,
   - `ArrayList<Vehicle>` for the fleet
   - `HashSet<String>` to track distinct model names
   - `TreeSet` view for sorted distinct model listing
-  - `LinkedHashMap` for journey results
   - `Comparator` for sorting vehicles by speed, model, or efficiency
 
 * **Enhanced Fleet Operations:**
