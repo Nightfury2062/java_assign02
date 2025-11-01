@@ -10,6 +10,8 @@ import exceptions.*;
 public class FleetManager{
 
     private final List<Vehicle> fleet;
+
+    //set to maintain distinct model names
     private Set<String> modelSet = new HashSet<>();
 
     public FleetManager(){
@@ -52,6 +54,8 @@ public class FleetManager{
                 return;
                 }
             }
+            modelSet.removeIf(model -> fleet.stream().noneMatch(v -> v.getModel().equals(model)));
+
         throw new InvalidOperationException("Vehicle not found: " + id);
         }
 
@@ -95,6 +99,21 @@ public class FleetManager{
         return tot;
     }
 
+    public void displayFleet() {
+        if (fleet.isEmpty()) {
+            System.out.println("No vehicles in the fleet.");
+            return;
+        }
+
+        System.out.println("\nCurrent Fleet:");
+        System.out.println("------------------------------------------------");
+        for (Vehicle v : fleet) {
+            v.displayInfo();
+            System.out.println("------------------------------------------------");
+        }
+    }
+
+
     public void maintainAll(){
         for (Vehicle v:fleet){
             if (v instanceof Maintainable){
@@ -114,9 +133,40 @@ public class FleetManager{
         return ans;
     }
 
-    public void sortFleetByEfficiency(){
-        Collections.sort(fleet);
+
+    public List<Vehicle> getFleetSortedBySpeed() {
+        List<Vehicle> sorted = new ArrayList<>(fleet);
+        Comparator<Vehicle> cmp = Comparator.comparingDouble(Vehicle::getMaxSpeed);
+        cmp = cmp.reversed();
+        sorted.sort(cmp);
+        return sorted;
     }
+
+    public List<Vehicle> getFleetSortedByModel(){
+        List<Vehicle> sorted = new ArrayList<>(fleet);
+        Comparator<Vehicle> cmp = (a,b) -> a.getModel().compareToIgnoreCase(b.getModel());
+        sorted.sort(cmp);
+        return sorted;
+
+    }
+    public List<Vehicle> getFleetSortedByEfficiency(){
+        List<Vehicle> sorted = new ArrayList<>(fleet);
+        Comparator<Vehicle> cmp = Comparator.comparingDouble(Vehicle::calculateFuelEfficiency);
+        cmp  = cmp.reversed();
+        sorted.sort(cmp);
+        return sorted;
+    }
+    public Vehicle getFastestVehicle(){
+        if(fleet.isEmpty()) return null;
+        return Collections.max(fleet,Comparator.comparingDouble(Vehicle::getMaxSpeed));
+
+    }
+    public Vehicle getSlowestVehicle(){
+        if(fleet.isEmpty()) return null;
+        return Collections.min(fleet,Comparator.comparingDouble(Vehicle::getMaxSpeed));
+        
+    }
+
 
 
 
@@ -224,6 +274,11 @@ public class FleetManager{
         // replace fleet with loaded vehicles
         fleet.clear();
         fleet.addAll(load1);
+        modelSet.clear();
+        for (Vehicle v : fleet) {
+            modelSet.add(v.getModel());
+        }
+
     }
 
     private String[] splitCsvLine(String line) {

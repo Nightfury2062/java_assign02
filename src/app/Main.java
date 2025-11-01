@@ -24,7 +24,7 @@ public class Main{
     private static void run_cli_loop(Scanner sc,FleetManager fm){
         while (true){
             printMenu();
-            int choose= readInt(sc, "Choose an option: ", 1, 11);
+            int choose= readInt(sc, "Choose an option: ", 1, 14);
             try{
                 switch(choose){
                     case 1: handle_add_v(sc,fm);break;
@@ -38,6 +38,9 @@ public class Main{
                     case 9: handleSearchByType(sc,fm);break;
                     case 10: handleListMaintenance(fm);break;
                     case 11: System.out.println("Exiting"); return;
+                    case 12: handleSortFleet(sc, fm);break;
+                    case 13: handleShowFastestSlowest(fm); break;
+                    case 14: handleDisplayDistinctModels(fm); break;
                     default: System.out.println("Invalid choice.");
                 }
             } 
@@ -60,8 +63,74 @@ public class Main{
         System.out.println("8. Load Fleet");
         System.out.println("9. Search by Type");
         System.out.println("10. List Vehicles Needing Maintenance");
+        //new options
+        System.out.println("12.Sort Fleet(by speed, model or efficiency)");
+        System.out.println("13.Show fastest and slowest vehicles");
+        System.out.println("14.Display Distinct models");
+        System.out.println("");
+
         System.out.println("11. Exit");
     }
+
+    private static void handleSortFleet(Scanner sc, FleetManager fm) {
+        System.out.println("Sort by: 1=Speed 2=Model 3=Fuel Efficiency");
+        int opt = readInt(sc, "Choose: ", 1, 3);
+
+        List<Vehicle> sortedFleet = null;
+
+        switch (opt) {
+            case 1:
+                sortedFleet = fm.getFleetSortedBySpeed();
+                System.out.println("Fleet sorted by max speed (fastest first).\n");
+                break;
+            case 2:
+                sortedFleet = fm.getFleetSortedByModel();
+                System.out.println("Fleet sorted by model name (A–Z).\n");
+                break;
+            case 3:
+                sortedFleet = fm.getFleetSortedByEfficiency();
+                System.out.println("Fleet sorted by fuel efficiency (highest first).\n");
+                break;
+        }
+        //display 
+        if (sortedFleet != null && !sortedFleet.isEmpty()) {
+            System.out.println("Current Fleet (sorted):");
+            System.out.println("------------------------------------------------");
+            for (Vehicle v : sortedFleet) {
+                v.displayInfo();
+                System.out.println("------------------------------------------------");
+            }
+        } else {
+            System.out.println("No vehicles to display or fleet is empty.");
+        }
+    }
+
+
+
+    private static void handleShowFastestSlowest(FleetManager fm){
+        Vehicle fastest = fm.getFastestVehicle();
+        Vehicle slowest = fm.getSlowestVehicle();
+
+        if(fastest==null || slowest==null){
+            System.out.println("No vehicles in fleet");
+            return;
+        }
+
+        System.out.println("\nFastest Vehicle: ");
+        fastest.displayInfo();
+
+        System.out.println("\nSlowest Vehicle: ");
+        slowest.displayInfo();
+    }
+
+    private static void handleDisplayDistinctModels(FleetManager fm) {
+        System.out.println("Distinct Models in Fleet:");
+        for (String model : fm.getDistinctModels()) {
+            System.out.println(" - " + model);
+        }
+    }
+
+
 
     private static void handle_add_v(Scanner sc,FleetManager fm){
         System.out.println("Select vehicle type: 1=Car 2=Truck 3=Bus 4=Airplane 5=CargoShip");
