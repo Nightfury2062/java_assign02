@@ -78,30 +78,30 @@ This project intentionally uses multiple collection types from the Java Collecti
 
 
 
-3. TreeSet<String> — ordered view of distinct models (alphabetical)
+3. * **TreeSet<String>** — ordered view of distinct models (alphabetical)
 
-Where: returned by getDistinctModels() as new TreeSet<>(modelSet) (call-site view).
+    -Where: returned by getDistinctModels() as new TreeSet<>(modelSet) (call-site view).
 
-Why: TreeSet provides an automatically sorted set (natural order). We do not maintain two persistent sets (HashSet + TreeSet) to avoid overhead; instead we keep a HashSet as the canonical distinct model store and create a TreeSet copy on-demand when an ordered (A→Z) view is requested. This balances runtime speed for updates and neat, sorted outputs for users.
+    -Why: TreeSet provides an automatically sorted set (natural order). We do not maintain two persistent sets (HashSet + TreeSet) to avoid overhead; instead we keep a HashSet as the canonical distinct model store and create a TreeSet copy on-demand when an ordered (A→Z) view is requested. This balances runtime speed for updates and neat, sorted outputs for users.
 
-Complexity: copying to TreeSet is O(m log m) where m = number of unique models. This is acceptable because the number of distinct models is typically small relative to the fleet.
+    -Complexity: copying to TreeSet is O(m log m) where m = number of unique models. This is acceptable because the number of distinct models is typically small relative to the fleet.
 
 
 
-4. Map<String,String> (LinkedHashMap used in startAllJourneys) — per-journey results
+4. * **Map<String,String>** (LinkedHashMap used in startAllJourneys) — per-journey results
 
-Where: startAllJourneys() returns a Map<String,String> (implemented as LinkedHashMap to preserve insertion order).
+    -Where: startAllJourneys() returns a Map<String,String> (implemented as LinkedHashMap to preserve insertion order).
 
-Why: We need to return a mapping from vehicle ID to result ("Ok" or "failed: ...") in a predictable order. A map provides direct ID→result lookups. Using LinkedHashMap ensures the results are printed in the same order the method processed vehicles (deterministic output for testing).
+    -Why: We need to return a mapping from vehicle ID to result ("Ok" or "failed: ...") in a predictable order. A map provides direct ID→result lookups. Using LinkedHashMap ensures the results are printed in the same order the method processed vehicles (deterministic output for testing).
 
-Complexity: O(1) average put/get.
+    -Complexity: O(1) average put/get.
 
 
 ## File I/O and Persistence Details
 
 This section explains how saveToFile() and loadFromFile() are implemented, including CSV schema, parsing rules, validation, atomic loading behavior, and error handling. The goal is predictable, testable persistence with clear user feedback and robustness to malformed input.
 
-High-level approach
+* **High-level approach**
 
 CSV format is used for human-readable, editable persistence. Each line begins with a vehicle type token (Car, Truck, Bus, Airplane, CargoShip) followed by common fields and type-specific fields in a fixed order.
 
@@ -109,6 +109,79 @@ saveToFile(filename): writes the current fleet to a file line-by-line in the can
 
 loadFromFile(filename): reads the file line-by-line, parses tokens, uses a VehicleFactory helper to create concrete vehicle objects, collects them in a temporary list, and only after successful parsing replaces the in-memory fleet. This makes loading atomic — if the file is partially corrupt we skip bad lines but will not corrupt the currently loaded fleet.
 
+* **File Writing Details**
+    -saveToFile() writes each vehicle line using PrintWriter.printf() to ensure formatting consistency (fixed decimal formats for numeric fields). It uses try-with-resources to automatically close the writer and will propagate IOException to the caller (CLI catches this and prints a friendly message).
+
+
+## Compile Instructions
+
+* **Windows Powershell**
+$files = Get-ChildItem -Path src -Recurse -Filter *.java | ForEach-Object { $_.FullName }
+javac -d bin $files
+
+java -cp bin app.Main
+
+## Example CLI flow 
+
+1. Add Vehicle → Choose type, input properties
+3. Start Journey → Enter distance
+12. Sort Fleet → Choose speed/model/efficiency
+13. Show Fastest/Slowest → Displays top/bottom
+14. Display Distinct Models → Lists all unique models
+7. Save Fleet → Exports to CSV
+8. Load Fleet → Imports from CSV
+
+## Example output 
+
+Choose an option: 12
+Sort by: 1=Speed 2=Model 3=Fuel Efficiency
+Choose: 1
+Fleet sorted by max speed (fastest first).
+
+Current Fleet (sorted):
+------------------------------------------------
+Vehicle Info:
+ID: 456
+Model: indigo
+Max Speed: 900.00 km/h
+Current Mileage: 34.00 km
+------------------------------------------------
+Vehicle Info:
+ID: 345
+Model: toyota
+Max Speed: 400.00 km/h
+Current Mileage: 23.00 km
+------------------------------------------------
+Vehicle Info:
+ID: 123
+Model: bmw
+Max Speed: 340.00 km/h
+Current Mileage: 23.00 km
+------------------------------------------------
+
+Choose an option: 13
+
+Fastest Vehicle:
+Vehicle Info:
+ID: 456
+Model: indigo
+Max Speed: 900.00 km/h
+Current Mileage: 34.00 km
+
+Slowest Vehicle:
+Vehicle Info:
+ID: 123
+Model: bmw
+Max Speed: 340.00 km/h
+Current Mileage: 23.00 km
+
+Choose an option: 14
+Distinct Models in Fleet:
+ - bmw
+ - indigo
+ - toyota
+
+ ##THANK YOU
 
 
 
